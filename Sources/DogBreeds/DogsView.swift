@@ -73,7 +73,7 @@ extension DogsView {
 extension DogsView.ViewState {
   enum LoadingState: Equatable {
     case loading
-    case loaded(bread: [String])
+    case loaded(breed: [String])
     
     var breeds: [String] {
       guard case .loaded(let breeds) = self else { return [] }
@@ -103,7 +103,7 @@ extension DogsView.ViewState {
       }
     }
     
-    return .loaded(bread: breeds)
+    return .loaded(breed: breeds)
   }
 }
 
@@ -184,7 +184,7 @@ struct DogsView_Previews: PreviewProvider {
         store: Store(
           initialState: DogsView.ViewState(
             filterText: "",
-            loadingState: .loaded(bread: [
+            loadingState: .loaded(breed: [
               "진도",
               "시고르자브르",
               "몽실"
