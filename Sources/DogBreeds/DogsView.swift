@@ -29,20 +29,6 @@ extension DogsState {
   }
 }
 
-
-//action
-enum DogsAction {
-  case breedWasSelected(name: String)
-  case dogsLoaded([Dog])
-  case filterQueryChanged(String)
-  case loadDogs
-}
-
-// environment
-struct DogsEnvironment {
-  var loadDogs: () -> Effect<[Dog], Never>
-}
-
 extension DogsState {
   static let reducer = Reducer<DogsState, DogsAction, DogsEnvironment> { state, action, env in
     switch action {
@@ -60,6 +46,45 @@ extension DogsState {
     }
   }
 }
+
+//action
+enum DogsAction {
+  case breedWasSelected(name: String)
+  case dogsLoaded([Dog])
+  case filterQueryChanged(String)
+  case loadDogs
+}
+
+extension DogsAction {
+  static func view(_ localAction: DogsView.ViewAction) -> Self {
+    switch localAction {
+    case .cellWasSelected(let breed):
+      return .breedWasSelected(name: breed)
+    case .onAppear:
+      return .loadDogs
+    case .filterTextChanged(let newValue):
+      return .filterQueryChanged(newValue)
+    }
+  }
+}
+
+// environment
+struct DogsEnvironment {
+  var loadDogs: () -> Effect<[Dog], Never>
+}
+
+extension DogsEnvironment {
+  // API Client대신 fake data
+  static let fake = DogsEnvironment(loadDogs: {
+    Effect(value: [
+      Dog(breed: "bullDog", subBreeds: ["Boston", "english", "french"]),
+      Dog(breed: "시고르자브르", subBreeds: [])
+    ])
+//    .delay(for: .second(2), scheduler: DispatchQueue.main)
+    .eraseToEffect()
+  })
+}
+
 
 /// Dogs View
 
@@ -182,16 +207,12 @@ struct DogsView_Previews: PreviewProvider {
     NavigationView {
       DogsView(
         store: Store(
-          initialState: DogsView.ViewState(
-            filterText: "",
-            loadingState: .loaded(breed: [
-              "진도",
-              "시고르자브르",
-              "몽실"
-            ])
-          ),
-          reducer: .empty,
-          environment: ()))
+          initialState: DogsState.initial,
+          reducer: DogsState.reducer,
+          environment: DogsEnvironment.fake
+        )
+        .scope(state: \.view, action: DogsAction.view)
+      )
     }
     
     NavigationView {
