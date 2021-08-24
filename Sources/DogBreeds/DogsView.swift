@@ -8,141 +8,7 @@
 import SwiftUI
 import ComposableArchitecture
 
-/// seperate bussiness logic
-
-// state
-struct Dog: Equatable {
-  let breed: String
-  let subBreeds: [String]
-}
-
-struct DogsState: Equatable {
-  var filterQuery: String
-  var dogs: [Dog]
-  
-  static let initial = DogsState(filterQuery: "", dogs: [])
-}
-
-extension DogsState {
-  var view: DogsView.ViewState {
-    DogsView.ViewState.convert(from: self)
-  }
-}
-
-extension DogsState {
-  static let reducer = Reducer<DogsState, DogsAction, DogsEnvironment> { state, action, env in
-    switch action {
-    
-    case .breedWasSelected(name: let name):
-      return .none
-    case .dogsLoaded(let dogs):
-      state.dogs = dogs
-      return .none
-    case .filterQueryChanged(let query):
-      state.filterQuery = query
-      return .none
-    case .loadDogs:
-      return env.loadDogs().map(DogsAction.dogsLoaded)
-    }
-  }
-}
-
-//action
-enum DogsAction {
-  case breedWasSelected(name: String)
-  case dogsLoaded([Dog])
-  case filterQueryChanged(String)
-  case loadDogs
-}
-
-extension DogsAction {
-  static func view(_ localAction: DogsView.ViewAction) -> Self {
-    switch localAction {
-    case .cellWasSelected(let breed):
-      return .breedWasSelected(name: breed)
-    case .onAppear:
-      return .loadDogs
-    case .filterTextChanged(let newValue):
-      return .filterQueryChanged(newValue)
-    }
-  }
-}
-
-// environment
-struct DogsEnvironment {
-  var loadDogs: () -> Effect<[Dog], Never>
-}
-
-extension DogsEnvironment {
-  // API Client대신 fake data
-  static let fake = DogsEnvironment(loadDogs: {
-    Effect(value: [
-      Dog(breed: "bullDog", subBreeds: ["Boston", "english", "french"]),
-      Dog(breed: "시고르자브르", subBreeds: [])
-    ])
-//    .delay(for: .second(2), scheduler: DispatchQueue.main)
-    .eraseToEffect()
-  })
-  
-  static let failing = DogsEnvironment(loadDogs: {
-    .failing("DogsEnvironment.loadDogs")
-  })
-}
-
-
 /// Dogs View
-
-extension DogsView {
-  struct ViewState: Equatable {
-    let filterText: String
-    let loadingState: LoadingState
-  }
-}
-
-extension DogsView.ViewState {
-  enum LoadingState: Equatable {
-    case loading
-    case loaded(breed: [String])
-    
-    var breeds: [String] {
-      guard case .loaded(let breeds) = self else { return [] }
-      return breeds
-    }
-    
-    var isLoading: Bool { self == .loading }
-  }
-  
-  // state를 viewState로 변환 (adapter pattern)
-  static func convert(from state: DogsState) -> Self {
-    .init(
-      filterText: state.filterQuery,
-      loadingState: loadingState(from: state)
-    )
-  }
-  
-  private static func loadingState(from state: DogsState) -> LoadingState {
-    if state.dogs.isEmpty { return .loading }
-    
-    // 아래는 비즈니스로직과는 상관없는 뷰로직
-    // 이런식으로 분리하면 테스트에 유리하다
-    var breeds = state.dogs.map(\.breed.capitalizedFirstLetter)
-    if !state.filterQuery.isEmpty {
-      breeds = breeds.filter {
-        $0.lowercased().contains(state.filterQuery.lowercased())
-      }
-    }
-    
-    return .loaded(breed: breeds)
-  }
-}
-
-extension DogsView {
-  enum ViewAction: Equatable {
-    case cellWasSelected(breed: String)
-    case onAppear
-    case filterTextChanged(String)
-  }
-}
 
 struct DogsView: View {
   let store: Store<ViewState, ViewAction>
@@ -203,6 +69,58 @@ struct DogsView: View {
   }
 }
 
+/// ViewState
+extension DogsView {
+  struct ViewState: Equatable {
+    let filterText: String
+    let loadingState: LoadingState
+  }
+}
+
+extension DogsView.ViewState {
+  enum LoadingState: Equatable {
+    case loading
+    case loaded(breed: [String])
+    
+    var breeds: [String] {
+      guard case .loaded(let breeds) = self else { return [] }
+      return breeds
+    }
+    
+    var isLoading: Bool { self == .loading }
+  }
+  
+  // state를 viewState로 변환 (adapter pattern)
+  static func convert(from state: DogsState) -> Self {
+    .init(
+      filterText: state.filterQuery,
+      loadingState: loadingState(from: state)
+    )
+  }
+  
+  private static func loadingState(from state: DogsState) -> LoadingState {
+    if state.dogs.isEmpty { return .loading }
+    
+    // 아래는 비즈니스로직과는 상관없는 뷰로직
+    // 이런식으로 분리하면 테스트에 유리하다
+    var breeds = state.dogs.map(\.breed.capitalizedFirstLetter)
+    if !state.filterQuery.isEmpty {
+      breeds = breeds.filter {
+        $0.lowercased().contains(state.filterQuery.lowercased())
+      }
+    }
+    
+    return .loaded(breed: breeds)
+  }
+}
+
+extension DogsView {
+  enum ViewAction: Equatable {
+    case cellWasSelected(breed: String)
+    case onAppear
+    case filterTextChanged(String)
+  }
+}
 
 
 
