@@ -83,6 +83,10 @@ extension DogsEnvironment {
 //    .delay(for: .second(2), scheduler: DispatchQueue.main)
     .eraseToEffect()
   })
+  
+  static let failing = DogsEnvironment(loadDogs: {
+    .failing("DogsEnvironment.loadDogs")
+  })
 }
 
 
