@@ -8,9 +8,9 @@
 import ComposableArchitecture
 
 // state
-struct Dog: Equatable {
-  let breed: String
-  let subBreeds: [String]
+public struct Dog: Equatable {
+  public let breed: String
+  public let subBreeds: [String]
 }
 
 struct DogsState: Equatable {

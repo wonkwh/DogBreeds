@@ -1,21 +1,29 @@
-
+//
+//  File.swift
+//  
+//
+//  Created by kwanghyun won on 2021/08/30.
+//
 
 import ComposableArchitecture
-import NukeUI
 import SwiftUI
+import NukeUI
 
 struct BreedView: View {
+  
   let store: Store<ViewState, ViewAction>
   
   var body: some View {
     WithViewStore(store) { viewStore in
       ScrollView {
-        GeometryReader { geometry in
-          LazyImage(source: viewStore.imageUrl?.absoluteString, resizingMode: .fill)
-            .frame(width: geometry.size.width, height: 240, alignment: .center)
-            .clipped()
-        }
+        LazyImage(source: viewStore.imageURLString, resizingMode: .aspectFill)
+          .frame(width: 300, height: 300)
           
+        viewStore
+          .subtitle
+          .flatMap(Text.init)
+          .font(.title)
+        
         ForEach(viewStore.subBreeds, id: \.self) { breed in
           VStack {
             HStack {
@@ -26,37 +34,43 @@ struct BreedView: View {
           }
           .foregroundColor(.primary)
         }
+        .padding()
+        
       }
       .navigationBarTitle(viewStore.title)
-      .onAppear {
-        viewStore.send(.onAppear)
-      }
+      .onAppear { viewStore.send(.onAppear) }
     }
   }
 }
 
-// MARK - ViewState
+/// VeiwState
 extension BreedView {
   struct ViewState: Equatable {
     let title: String
     let subtitle: String?
     let subBreeds: [String]
-    let imageUrl: URL?
-    
-    static func convert(from state: BreedState) -> Self {
-      .init(
-        title: state.dog.breed.capitalizedFirstLetter,
-        subtitle: state.dog.subBreeds.isEmpty ? nil : "Sub-breed",
-        subBreeds: state.dog.subBreeds.map(\.capitalizedFirstLetter),
-        imageUrl: state.imageUrl)
-    }
+    let imageURLString: String?
   }
-  
+}
+
+/// ViewAction
+extension BreedView {
   enum ViewAction: Equatable {
     case onAppear
   }
 }
 
+// MARK: - Converter
+extension BreedView.ViewState {
+  static func convert(from state: BreedState) -> Self {
+    .init(
+      title: state.dog.breed.capitalizedFirstLetter,
+      subtitle: state.dog.subBreeds.isEmpty ? nil : "Sub-breeds",
+      subBreeds: state.dog.subBreeds.map(\.capitalizedFirstLetter),
+      imageURLString: state.imageURLString
+    )
+  }
+}
 #if DEBUG
 struct BreedView_Previews: PreviewProvider {
   static var previews: some View {
@@ -75,7 +89,7 @@ struct BreedView_Previews: PreviewProvider {
               "plott",
               "walker"
             ],
-            imageUrl: URL(string: "https://images.dog.ceo/breeds/hound-basset/n02088238_9351.jpg")
+            imageURLString: "https://images.dog.ceo/breeds/hound-basset/n02088238_9351.jpg"
           ),
           reducer: .empty,
           environment: ()

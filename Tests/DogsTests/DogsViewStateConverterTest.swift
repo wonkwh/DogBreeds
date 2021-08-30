@@ -6,7 +6,7 @@
 //
 
 import XCTest
-@testable import DogBreeds
+@testable import Dogs
 
 class DogsViewStateConverterTest: XCTestCase {
   func testViewStateFilterTextGoesFromStateFilterQuery() {

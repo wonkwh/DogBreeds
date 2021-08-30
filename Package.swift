@@ -7,9 +7,10 @@ let package = Package(
   name: "DogBreeds",
   platforms: [.iOS(.v14)],
   products: [
-    .library(
-      name: "DogBreeds",
-      targets: ["DogBreeds"])
+    .library(name: "App", targets: ["App"]),
+    .library(name: "ApiClient", targets: ["ApiClient"]),
+    .library(name: "Dogs", targets: ["Dogs"]),
+    .library(name: "Breed", targets: ["Breed"]),
   ],
   dependencies: [
     .package(
@@ -24,19 +25,56 @@ let package = Package(
     )
   ],
   targets: [
-    // Targets are the basic building blocks of a package. A target can define a module or a test suite.
-    // Targets can depend on other targets in this package, and on products in packages this package depends on.
     .target(
-      name: "DogBreeds",
+      name: "App",
       dependencies: [
-        .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
-        .product(name: "NukeUI", package: "NukeUI")
+        "ApiClient",
+        .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
+      ]),
+    .target(
+      name: "ApiClient",
+      dependencies: [
+        .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
+      ]),
+    .target(
+      name: "Dogs",
+      dependencies: [
+        .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
+      ]),
+    .target(
+      name: "Breed",
+      dependencies: [
+        "Dogs",
+        .product(name: "NukeUI", package: "NukeUI"),
+        .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
+      ]),
+    
+    // MARK - testTarget
+    .testTarget(
+      name: "AppTests",
+      dependencies: [
+        "App",
+        .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
       ]),
     .testTarget(
-      name: "DogBreedsTests",
+      name: "ApiClientTests",
       dependencies: [
-        "DogBreeds",
-        .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
+        "App",
+        .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
+      ]),
+    
+    .testTarget(
+      name: "DogsTests",
+      dependencies: [
+        "Dogs",
+        .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
+      ]),
+    
+    .testTarget(
+      name: "BreedTests",
+      dependencies: [
+        "Breed",
+        .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
       ]),
   ]
 )
