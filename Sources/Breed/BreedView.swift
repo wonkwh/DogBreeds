@@ -9,11 +9,14 @@ import ComposableArchitecture
 import SwiftUI
 import NukeUI
 
-struct BreedView: View {
+public struct BreedView: View {
+  public init(store: Store<BreedView.ViewState, BreedView.ViewAction>) {
+    self.store = store
+  }
   
   let store: Store<ViewState, ViewAction>
   
-  var body: some View {
+  public var body: some View {
     WithViewStore(store) { viewStore in
       ScrollView {
         LazyImage(source: viewStore.imageURLString, resizingMode: .aspectFill)
@@ -45,7 +48,7 @@ struct BreedView: View {
 
 /// VeiwState
 extension BreedView {
-  struct ViewState: Equatable {
+  public struct ViewState: Equatable {
     let title: String
     let subtitle: String?
     let subBreeds: [String]
@@ -55,7 +58,7 @@ extension BreedView {
 
 /// ViewAction
 extension BreedView {
-  enum ViewAction: Equatable {
+  public enum ViewAction: Equatable {
     case onAppear
   }
 }

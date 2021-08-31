@@ -7,12 +7,20 @@
 
 import SwiftUI
 import App
+import ComposableArchitecture
 
 @main
 struct DogBreedsApp: App {
     var body: some Scene {
         WindowGroup {
-            RootView()
+          RootView(
+            store:
+              .init(
+                initialState: .inital,
+                reducer: AppState.reducer,
+                environment: ()
+              )
+          )
         }
     }
 }

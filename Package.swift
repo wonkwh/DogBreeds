@@ -28,7 +28,7 @@ let package = Package(
     .target(
       name: "App",
       dependencies: [
-        "ApiClient",
+        "ApiClient", "Dogs", "Breed",
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
       ]),
     .target(
@@ -73,7 +73,7 @@ let package = Package(
     .testTarget(
       name: "BreedTests",
       dependencies: [
-        "Breed",
+        "Breed", "Dogs",
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
       ]),
   ]

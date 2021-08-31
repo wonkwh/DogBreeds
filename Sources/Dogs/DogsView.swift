@@ -10,10 +10,16 @@ import ComposableArchitecture
 
 /// Dogs View
 
-struct DogsView: View {
-  let store: Store<ViewState, ViewAction>
+public struct DogsView: View {
+  public init(
+    store: Store<DogsView.ViewState, DogsView.ViewAction>
+  ) {
+    self.store = store
+  }
   
-  var body: some View {
+  public let store: Store<ViewState, ViewAction>
+  
+  public var body: some View {
     WithViewStore(self.store) { viewStore in
       VStack {
         if viewStore.loadingState.isLoading {
@@ -71,7 +77,7 @@ struct DogsView: View {
 
 /// ViewState
 extension DogsView {
-  struct ViewState: Equatable {
+  public struct ViewState: Equatable {
     let filterText: String
     let loadingState: LoadingState
   }
@@ -115,7 +121,7 @@ extension DogsView.ViewState {
 }
 
 extension DogsView {
-  enum ViewAction: Equatable {
+  public enum ViewAction: Equatable {
     case cellWasSelected(breed: String)
     case onAppear
     case filterTextChanged(String)

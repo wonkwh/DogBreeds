@@ -8,14 +8,20 @@
 import Foundation
 import Dogs
 
-struct BreedState: Equatable {
-  let dog: Dog
-  var imageURLString: String?
+public struct BreedState: Equatable {
+  
+  public let dog: Dog
+  public var imageURLString: String?
+  
+  public init(dog: Dog, imageURLString: String? = nil) {
+    self.dog = dog
+    self.imageURLString = imageURLString
+  }
 }
 
 // MARK: - Scope
 extension BreedState {
-  var view: BreedView.ViewState {
+  public var view: BreedView.ViewState {
     BreedView.ViewState.convert(from: self)
   }
 }
@@ -27,7 +33,7 @@ public enum BreedAction: Equatable {
 
 // MARK: - Scope
 extension BreedAction {
-  static func view(_ localAction: BreedView.ViewAction) -> Self {
+  public static func view(_ localAction: BreedView.ViewAction) -> Self {
     switch localAction {
     case .onAppear:
       return .getBreedImageURL

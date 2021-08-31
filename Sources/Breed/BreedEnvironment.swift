@@ -7,12 +7,12 @@
 
 import ComposableArchitecture
 
-struct BreedEnvironment {
-  var loadDogImage: (_ breed: String) -> Effect<String?, Never>
+public struct BreedEnvironment {
+  var loadDogImage: (_ breed: String) -> Effect<String, Never>
 }
 
 extension BreedState {
-  static let reducer = Reducer<BreedState, BreedAction, BreedEnvironment> { state, action, environment in
+  public static let reducer = Reducer<BreedState, BreedAction, BreedEnvironment> { state, action, environment in
     switch action {
     case .breedImageURLReceived(let urlString):
       state.imageURLString = urlString
@@ -34,10 +34,29 @@ extension BreedEnvironment {
 }
 
 extension BreedEnvironment {
-  static let fake = BreedEnvironment(
+  public static let fake = BreedEnvironment(
     loadDogImage: { _ in
       Effect(value: "https://images.dog.ceo/breeds/hound-blood/n02088466_9069.jpg")
         .delay(for: .seconds(2), scheduler: DispatchQueue.main)
+        .eraseToEffect()
+    }
+  )
+  
+  private struct BreedImageResponse: Codable {
+    let message: String?
+  }
+  
+  public static let live = BreedEnvironment(
+    loadDogImage: { breed in
+      URLSession
+        .shared
+        .dataTaskPublisher(for: URL(string: "https://dog.ceo/api/breed/\(breed)/images/random")!)
+        .map(\.data)
+        .decode(type: BreedImageResponse.self, decoder: JSONDecoder())
+        .compactMap(\.message)
+//        .map(URL.init(string:))
+        .replaceError(with: "")
+        .receive(on: DispatchQueue.main)
         .eraseToEffect()
     }
   )

@@ -13,21 +13,28 @@ public struct Dog: Equatable {
   public let subBreeds: [String]
 }
 
-struct DogsState: Equatable {
-  var filterQuery: String
-  var dogs: [Dog]
+public struct DogsState: Equatable {
+  
+  public var filterQuery: String
+  public var dogs: [Dog]
   
   static let initial = DogsState(filterQuery: "", dogs: [])
-}
-
-extension DogsState {
-  var view: DogsView.ViewState {
-    DogsView.ViewState.convert(from: self)
+  
+  public init(filterQuery: String, dogs: [Dog]) {
+    self.filterQuery = filterQuery
+    self.dogs = dogs
   }
 }
 
 extension DogsState {
-  static let reducer = Reducer<DogsState, DogsAction, DogsEnvironment> { state, action, env in
+  public var view: DogsView.ViewState {
+    DogsView.ViewState.convert(from: self)
+  }
+}
+
+/// Reducer
+extension DogsState {
+  public static let reducer = Reducer<DogsState, DogsAction, DogsEnvironment> { state, action, env in
     switch action {
     
     case .breedWasSelected(name: let name):
@@ -45,7 +52,7 @@ extension DogsState {
 }
 
 //action
-enum DogsAction {
+public enum DogsAction: Equatable {
   case breedWasSelected(name: String)
   case dogsLoaded([Dog])
   case filterQueryChanged(String)
@@ -53,7 +60,7 @@ enum DogsAction {
 }
 
 extension DogsAction {
-  static func view(_ localAction: DogsView.ViewAction) -> Self {
+  public static func view(_ localAction: DogsView.ViewAction) -> Self {
     switch localAction {
     case .cellWasSelected(let breed):
       return .breedWasSelected(name: breed)
@@ -66,8 +73,8 @@ extension DogsAction {
 }
 
 // environment
-struct DogsEnvironment {
-  var loadDogs: () -> Effect<[Dog], Never>
+public struct DogsEnvironment {
+  public var loadDogs: () -> Effect<[Dog], Never>
 }
 
 extension DogsEnvironment {
@@ -77,11 +84,34 @@ extension DogsEnvironment {
       Dog(breed: "bullDog", subBreeds: ["Boston", "english", "french"]),
       Dog(breed: "시고르자브르", subBreeds: [])
     ])
-//    .delay(for: .second(2), scheduler: DispatchQueue.main)
+    //    .delay(for: .second(2), scheduler: DispatchQueue.main)
     .eraseToEffect()
   })
   
   static let failing = DogsEnvironment(loadDogs: {
     .failing("DogsEnvironment.loadDogs")
   })
+  
+  private struct DogsResponse: Codable {
+    let message: [String: [String]]
+  }
+  
+  public static let live = DogsEnvironment(
+    loadDogs: {
+      URLSession
+        .shared
+        .dataTaskPublisher(for: URL(string: "https://dog.ceo/api/breeds/list/all")!)
+        .map(\.data)
+        .decode(type: DogsResponse.self, decoder: JSONDecoder())
+        .map { response in
+          response
+            .message
+            .map(Dog.init)
+            .sorted { $0.breed < $1.breed }
+        }
+        .replaceError(with: [])
+        .receive(on: DispatchQueue.main)
+        .eraseToEffect()
+    }
+  )
 }
